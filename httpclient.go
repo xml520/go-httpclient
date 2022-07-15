@@ -670,6 +670,10 @@ func (this *HttpClient) Delete(url string, params ...interface{}) (*Response, er
 
 	return this.Do("DELETE", url, nil, nil)
 }
+// delete json data
+func (this *HttpClient) DeleteJson(url string, data interface{}) (*Response, error) {
+	return this.sendJson("DELETE", url, data)
+}
 
 // The POST request
 //
