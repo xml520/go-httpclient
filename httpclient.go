@@ -644,8 +644,14 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 	}
 
 	res, err := c.Do(req)
+	httpRes := &Response{res}
+	if beforeReqFunc, ok := options[OPT_BEFORE_RESPONSE_FUNC]; ok {
+		if f, ok := beforeReqFunc.(func(res *Response)); ok {
+			err = f(c, req)
+		}
+	}
 
-	return &Response{res}, err
+	return httpRes, err
 }
 
 // The HEAD request
