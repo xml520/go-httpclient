@@ -29,6 +29,7 @@ import (
 
 	"encoding/json"
 	"mime/multipart"
+	"github.com/tidwall/gjson"
 )
 
 // Constants definations
@@ -68,6 +69,7 @@ const (
 	OPT_CONTEXT
 
 	OPT_BEFORE_REQUEST_FUNC
+	OPT_BEFORE_RESPONSE_FUNC
 )
 
 // String map of options
@@ -91,6 +93,7 @@ var CONST = map[string]int{
 	"OPT_UNSAFE_TLS":          OPT_UNSAFE_TLS,
 	"OPT_CONTEXT":             OPT_CONTEXT,
 	"OPT_BEFORE_REQUEST_FUNC": OPT_BEFORE_REQUEST_FUNC,
+	"OPT_BEFORE_RESPONSE_FUNC": OPT_BEFORE_RESPONSE_FUNC,
 }
 
 // Default options for any clients.
@@ -126,10 +129,14 @@ var jarOptions = []int{
 // Thin wrapper of http.Response(can also be used as http.Response).
 type Response struct {
 	*http.Response
+	body []byte
 }
 
 // Read response body into a byte slice.
 func (this *Response) ReadAll() ([]byte, error) {
+	if this.body != nil{
+		return this.body,nil
+	}
 	var reader io.ReadCloser
 	var err error
 	switch this.Header.Get("Content-Encoding") {
@@ -143,17 +150,27 @@ func (this *Response) ReadAll() ([]byte, error) {
 	}
 
 	defer reader.Close()
-	return ioutil.ReadAll(reader)
+	this.body,err = ioutil.ReadAll(reader)
+	return this.body,err
 }
 
 // Read response body into string.
 func (this *Response) ToString() (string, error) {
+
 	bytes, err := this.ReadAll()
 	if err != nil {
 		return "", err
 	}
-
 	return string(bytes), nil
+}
+
+func (this *Response) ToJson(path string) (gjson.Result) {
+
+	bytes, err := this.ReadAll()
+	if err != nil {
+		return gjson.GetBytes(nil,path)
+	}
+	return gjson.GetBytes(bytes,path)
 }
 
 // Prepare a request.
@@ -645,13 +662,13 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 
 	res, err := c.Do(req)
 	httpRes := &Response{res}
-	if beforeReqFunc, ok := options[OPT_BEFORE_RESPONSE_FUNC]; ok {
-		if f, ok := beforeReqFunc.(func(res *Response)); ok {
-			err = f(c, req)
+	if beforeResFunc, ok := options[OPT_BEFORE_RESPONSE_FUNC]; ok {
+		if f, ok := beforeResFunc.(func(res *Response) error); ok {
+			err = f(httpRes)
 		}
 	}
 
-	return httpRes, err
+	return &Response{res}, err
 }
 
 // The HEAD request
