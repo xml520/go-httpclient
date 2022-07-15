@@ -22,7 +22,7 @@ Advanced HTTP client for golang.
 ## Installation
 
 ```bash
-go get github.com/ddliu/go-httpclient
+go get github.com/xml520/go-httpclient
 ```
 
 ## Quick Start
@@ -31,7 +31,7 @@ go get github.com/ddliu/go-httpclient
 package main
 
 import (
-    "github.com/ddliu/go-httpclient"
+    "github.com/xml520/go-httpclient"
 )
 
 func main() {
