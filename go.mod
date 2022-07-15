@@ -1,3 +1,3 @@
-module github.com/ddliu/go-httpclient
+module github.com/xml520/go-httpclient
 
 go 1.12
