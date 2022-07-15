@@ -661,14 +661,15 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 	}
 
 	res, err := c.Do(req)
-	httpRes := &Response{res}
+	httpRes := &Response{res,nil}
+
 	if beforeResFunc, ok := options[OPT_BEFORE_RESPONSE_FUNC]; ok {
 		if f, ok := beforeResFunc.(func(res *Response) error); ok {
 			err = f(httpRes)
 		}
 	}
 
-	return &Response{res}, err
+	return httpRes, err
 }
 
 // The HEAD request
