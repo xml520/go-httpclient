@@ -662,10 +662,14 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 
 	res, err := c.Do(req)
 	httpRes := &Response{res,nil}
-
+    if err != nil{
+		return httpRes, err
+	}
 	if beforeResFunc, ok := options[OPT_BEFORE_RESPONSE_FUNC]; ok {
-		if f, ok := beforeResFunc.(func(res *Response) error); ok {
-			err = f(httpRes)
+		if f, ok2 := beforeResFunc.(func(res *Response) error); ok2 {
+			if err = f(httpRes);err != nil{
+				return httpRes, err
+			}
 		}
 	}
 
